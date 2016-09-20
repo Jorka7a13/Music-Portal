@@ -1,0 +1,5 @@
+# Module musicportal
+# RPC service class, partial path of RPC policy file
+com.ip.music_portal.client.IUserManager, 10BF217AD7D131F98DB277FBB0A3C998.gwt.rpc
+com.ip.music_portal.client.IUploadManager, 7BA5F5591232AA7033DCCC88DC398D5A.gwt.rpc
+com.ip.music_portal.client.ICommentManager, 3DBFC683FE07E48663C6FEDDEFBEF21E.gwt.rpc

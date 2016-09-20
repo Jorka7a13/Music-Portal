@@ -1,0 +1,1031 @@
+package com.ip.music_portal.client;
+
+import java.util.List;
+
+
+
+import com.allen_sauer.gwt.voices.client.Sound;
+import com.allen_sauer.gwt.voices.client.SoundController;
+import com.allen_sauer.gwt.voices.client.handler.PlaybackCompleteEvent;
+import com.allen_sauer.gwt.voices.client.handler.SoundHandler;
+import com.allen_sauer.gwt.voices.client.handler.SoundLoadStateChangeEvent;
+import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.uibinder.elementparsers.GridParser;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.PasswordTextBox;
+import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
+import com.ip.music_portal.client.User.UserStatus;
+import com.ip.music_portal.shared.LoginVerifier;
+
+public class MusicPortal implements EntryPoint {
+	
+	static IUserManagerAsync userManagerService = (IUserManagerAsync) GWT.create(IUserManager.class);
+	
+	static IUploadManagerAsync uploadManagerService = (IUploadManagerAsync) GWT.create(IUploadManager.class);
+	
+	static User user;
+	
+	static boolean isInputValid = false;
+	
+	static boolean hasAdminPanelBeingShown = false;
+	
+	static boolean soundIsPlaying = false;
+	
+	static SoundController soundController = new SoundController();
+	
+	static Sound sound;
+	
+	private static class PlayerGUI {
+		
+		private static ListBox uploadsListBox;
+		private static Button playButton;
+		private static Button stopButton;
+
+
+		public PlayerGUI() {
+<<<<<<< local
+=======
+		
+			uploadsListBox = new ListBox();
+			uploadsListBox.setVisibleItemCount(20);
+			uploadsListBox.setHeight("400px");
+			uploadsListBox.setWidth("350px");
+			uploadsListBox.setStyleName("UploadListStyle");
+			uploadsListBox.setTitle("Choose Song ...");
+>>>>>>> other
+			
+			playButton = new Button("Play");
+			stopButton = new Button("Stop");
+			playButton.setSize("80px", "30px");
+			stopButton.setSize("80px", "30px");
+			playButton.setStyleName("Button");
+			stopButton.setStyleName("Button");
+			
+			ServiceDefTarget uploadManagerServiceDef = (ServiceDefTarget) uploadManagerService;
+			uploadManagerServiceDef.setServiceEntryPoint(GWT.getModuleBaseURL() + "uploadManager");
+			
+			uploadManagerService.getAllUploadNames(new AsyncCallback<List<String>>() {
+
+				@Override
+				public void onFailure(Throwable caught) {
+					uploadsListBox.addItem("Error in loading tracks!");
+				}
+
+				@Override
+				public void onSuccess(List<String> result) {
+					for(String currentName : result) {
+						uploadsListBox.addItem(currentName);
+					}
+				}
+				
+			});
+			
+			playButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+				
+					if(uploadsListBox.getSelectedIndex() != -1) {
+					
+						if(soundIsPlaying) {
+							sound.stop();
+							soundIsPlaying = false;
+						}
+						
+						String uploadName = uploadsListBox.getItemText(uploadsListBox.getSelectedIndex());
+						
+						uploadManagerService.getUploadByName(uploadName, new AsyncCallback<Upload>() {
+	
+							@Override
+							public void onFailure(Throwable caught) {
+								System.out.println("RPC failed!");
+							}
+	
+							@Override
+							public void onSuccess(Upload result) {
+								sound = soundController.createSound(Sound.MIME_TYPE_AUDIO_MPEG_MP3, result.getUrlToFile());
+			
+								sound.addEventHandler(new SoundHandler() {
+									
+									public void onPlaybackComplete(PlaybackCompleteEvent event) {}
+									
+									public void onSoundLoadStateChange(SoundLoadStateChangeEvent event) {
+										sound.play();	
+										soundIsPlaying = true;
+									}			
+								});
+								
+							}
+						});
+					}		
+				}
+			});
+			
+			stopButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {				
+					if(soundIsPlaying) {
+						sound.stop();
+					}				
+				}
+			});
+			
+		}
+
+		public void showPlayerGUI() {
+			RootPanel.get().add(uploadsListBox);
+			RootPanel.get().add(playButton);
+			RootPanel.get().add(stopButton);
+			
+			RootPanel.get().setWidgetPosition(uploadsListBox, 400, 150);
+			RootPanel.get().setWidgetPosition(playButton, 400, 555);
+			RootPanel.get().setWidgetPosition(stopButton, 485, 555);
+		}
+		
+		public static void addTrackToUploadsList(String name) {
+			uploadsListBox.addItem(name);
+		}
+		
+		public static void removeTrackFromUploadsList(String name) {
+				
+			for(int index = 0; index < uploadsListBox.getItemCount(); index++) {
+				if(uploadsListBox.getItemText(index).equals(name)) {
+					uploadsListBox.removeItem(index);
+				}
+			}
+		}
+		
+	}
+		
+	private static class AdminGUI {
+		
+		static Button showAdminPanelButton;
+		static Button hideAdminPanelButton;
+	
+		public AdminGUI() {
+			
+			showAdminPanelButton = new Button("Show Admin Panel");
+			showAdminPanelButton.setSize("140px", "30px");	
+			showAdminPanelButton.setStyleName("Button");
+			
+			showAdminPanelButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					new AdminPanelGUI();
+					AdminPanelGUI.showAdminPanelGUI();
+					RootPanel.get().remove(showAdminPanelButton);
+					hideAdminPanelButton = new Button("Hide Admin Panel");
+					hideAdminPanelButton.setSize("140px", "30px");	
+					hideAdminPanelButton.setStyleName("Button");
+					RootPanel.get().add(hideAdminPanelButton);
+					hasAdminPanelBeingShown = true;
+					
+					hideAdminPanelButton.addClickHandler(new ClickHandler() {
+						@Override
+						public void onClick(ClickEvent event) {
+							AdminPanelGUI.hideAdminPanelGUI();
+							RootPanel.get().remove(hideAdminPanelButton);
+							RootPanel.get().add(showAdminPanelButton);
+						}
+					});
+	
+				}
+			});
+			
+		}
+		
+		public static void showAdminGUI() {
+			RootPanel.get().add(showAdminPanelButton);
+		}
+		
+		public static void hideAdminGUI() {
+			if((user.getUserStatus().equals(UserStatus.ADMIN)) && (hasAdminPanelBeingShown)) {
+				RootPanel.get().remove(hideAdminPanelButton);
+				RootPanel.get().remove(showAdminPanelButton);
+				AdminPanelGUI.hideAdminPanelGUI();
+			}
+		}
+		
+	}
+			 
+	private static class AdminPanelGUI {
+		 
+		static Button deleteUserButton;
+		static TextBox userNameTextBox;
+		static Button deleteUploadButton;
+		static TextBox uploadNameTextBox;
+		
+		public AdminPanelGUI() {
+			
+			
+			
+			deleteUserButton = new Button("Delete User");
+			deleteUserButton.setSize("120px", "30px");
+			userNameTextBox = new TextBox();
+			userNameTextBox.setSize("120px", "20px");
+			
+			deleteUploadButton = new Button("Delete Track");
+			deleteUploadButton.setSize("120px", "30px");
+			uploadNameTextBox = new TextBox();
+			uploadNameTextBox.setSize("120px", "20px");
+			
+			deleteUserButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					
+					if(userNameTextBox.getText().equals("")) {
+						new MessagePopup("Please enter valid username!");
+					} else {
+						if(userNameTextBox.getText().equals(user.getUserName())) {
+							new AreYouShureDialogBox();							
+						} else {
+							userManagerService.deleteUser(userNameTextBox.getText(), new AsyncCallback<Boolean>() {
+								
+								@Override
+								public void onFailure(Throwable caught) {
+									System.out.println("Failiure in RPC!!!");
+								}
+		
+								@Override
+								public void onSuccess(Boolean result) {
+									System.out.println("Success in RPC!");
+									if(result) {
+										new MessagePopup("The user has been deleted!");
+									} else {
+										new MessagePopup("There is no such user!");
+									}
+								}
+							});
+							userNameTextBox.setText("");
+						}
+					}
+				}
+			});	
+			
+			deleteUploadButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					
+					if(uploadNameTextBox.getText().equals("")) {
+						new MessagePopup("Please enter valid track name!");
+					} else {
+						uploadManagerService.deleteUpload(uploadNameTextBox.getText(), new AsyncCallback<Boolean>() {
+
+							@Override
+							public void onFailure(Throwable caught) {
+								new MessagePopup("An internal error has occured! The track has not been deleted!");
+							}
+
+							@Override
+							public void onSuccess(Boolean result) {
+								if(result) {
+									new MessagePopup("The track has been deleted!");
+									PlayerGUI.removeTrackFromUploadsList(uploadNameTextBox.getText());
+								} else {
+									new MessagePopup("There are no tracks with that name!");
+								}
+							}
+							
+						});							
+					}
+					
+					uploadNameTextBox.setText("");
+					
+				}
+			});
+			
+		} 
+		
+		private static class AreYouShureDialogBox extends DialogBox {
+
+			
+			public AreYouShureDialogBox() {
+				// Set the dialog box's caption.
+				setText("Delete user");
+
+				VerticalPanel areYouShureVerticalPanel = new VerticalPanel();
+				areYouShureVerticalPanel.setStyleName("areYouShureVerticalPanel");
+				areYouShureVerticalPanel.setPixelSize(250, 80);
+				
+				HorizontalPanel captionHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel buttonHorizontalPanel = new HorizontalPanel();
+
+				Button yesButton = new Button("Yes!");
+				Button noButton = new Button("No!");
+				
+				HTML captionLabel = new HTML();	
+				captionLabel.setText("Are you shure you want to delete your accaunt?");
+				
+				captionHorizontalPanel.add(captionLabel);
+				
+				buttonHorizontalPanel.add(yesButton);
+				yesButton.setSize("125px","30px");
+				buttonHorizontalPanel.add(noButton);
+				noButton.setSize("125px","30px");
+
+				areYouShureVerticalPanel.add(captionHorizontalPanel);
+				areYouShureVerticalPanel.add(buttonHorizontalPanel);
+				
+				noButton.addClickHandler(new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+						AreYouShureDialogBox.this.hide(); // Hides the "Are You Shure" Dialog Box
+					}
+				});
+				
+				yesButton.addClickHandler(new ClickHandler() {
+					
+					@Override
+					public void onClick(ClickEvent event) {
+						
+						userManagerService.deleteUser(userNameTextBox.getText(), new AsyncCallback<Boolean>() {
+							
+							@Override
+							public void onFailure(Throwable caught) {
+								System.out.println("Failiure in RPC!!!");
+							}
+	
+							@Override
+							public void onSuccess(Boolean result) {
+								System.out.println("Success in RPC!");
+								if(result) {
+									new MessagePopup("The user has been deleted!");
+								} else {
+									new MessagePopup("There is no such user!");
+								}
+							}
+						});
+						userNameTextBox.setText("");
+						AreYouShureDialogBox.this.hide();	
+						user.setLoggedIn(false);						
+						LoginGUI.hideLogoutGUI();
+						LoginGUI.showLoginGUI();
+						AdminGUI.hideAdminGUI();
+						UploadGUI.hideUploadGUI();
+					}
+				});
+
+				// DialogBox is a SimplePanel, so you have to set its widget
+				// property to
+				// whatever you want its contents to be.
+				setWidget(areYouShureVerticalPanel);
+
+				setGlassEnabled(true); // Make the background gray
+				setAnimationEnabled(true); // Add animation
+				center();
+			}
+		
+		}
+		
+		public static void showAdminPanelGUI() {
+			RootPanel.get().add(userNameTextBox);
+			RootPanel.get().add(deleteUserButton);
+			RootPanel.get().add(uploadNameTextBox);
+			RootPanel.get().add(deleteUploadButton);
+		}
+		
+		public static void hideAdminPanelGUI() {
+			RootPanel.get().remove(userNameTextBox);
+			RootPanel.get().remove(deleteUserButton);
+			RootPanel.get().remove(uploadNameTextBox);
+			RootPanel.get().remove(deleteUploadButton);
+		}
+		
+	} 
+	
+	private static class LoginGUI {
+				
+		static Button loginButton;
+		static Button registerButton;
+		static Button logoutButton;
+	
+		
+		public LoginGUI() {
+			loginButton = new Button("Login");
+			registerButton = new Button("Register");
+			logoutButton = new Button("Logout");
+			loginButton.setSize("80px", "30px");
+			registerButton.setSize("80px", "30px");
+<<<<<<< local
+			logoutButton.setSize("80px", "30px");		
+=======
+			logoutButton.setSize("80px", "30px");	
+>>>>>>> other
+			
+<<<<<<< local
+			ServiceDefTarget userManagerServiceDef = (ServiceDefTarget) userManagerService;
+			userManagerServiceDef.setServiceEntryPoint(GWT.getModuleBaseURL() + "userManager");
+=======
+			loginButton.setStyleName("Button");
+			logoutButton.setStyleName("Button");
+			registerButton.setStyleName("Button");
+			
+>>>>>>> other
+		}
+		
+		public static void showLoginGUI() {
+			RootPanel.get().add(loginButton);
+			RootPanel.get().add(registerButton);
+			
+			RootPanel.get().setWidgetPosition(loginButton, 1000, 75);
+			RootPanel.get().setWidgetPosition(registerButton, 1080, 75);
+						
+		}
+		
+		public static void hideLoginGUI() {
+			RootPanel.get().remove(loginButton);
+			RootPanel.get().remove(registerButton);
+		}
+		
+		public static void showLogoutGUI() {
+			RootPanel.get().add(logoutButton);
+			RootPanel.get().setWidgetPosition(logoutButton, 1000, 75);
+		}
+		
+		public static void hideLogoutGUI() {
+			RootPanel.get().remove(logoutButton);
+		}
+		
+		private static class RegisterDialogBox extends DialogBox {
+
+			String userName;
+			String password;
+			String repeatPassword;
+			String email;
+			
+			public RegisterDialogBox() {
+				setText("Please Register");
+
+				VerticalPanel verticalPanel = new VerticalPanel();
+				verticalPanel.setStyleName("registerVerticalPanel");
+				verticalPanel.setPixelSize(250, 280);
+
+				HorizontalPanel userNameHorizontalPanel = new HorizontalPanel();
+
+				HorizontalPanel passwordHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel repeatPasswordHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel emailHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel bioHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel statusHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel buttonHorizontalPanel = new HorizontalPanel();			
+
+			    final TextBox userNameTextBox = new TextBox();		
+			    final PasswordTextBox passwordTextBox = new PasswordTextBox();
+			    final PasswordTextBox repeatPasswordTextBox = new PasswordTextBox();	
+			    final TextBox emailTextBox = new TextBox();	
+			    final TextArea bioTextArea = new TextArea();
+			    final CheckBox statusCheckBox = new CheckBox();
+				Button registerButton = new Button("Register");
+				Button closeButton = new Button("Close");
+				registerButton.setStyleName("Button");
+				closeButton.setStyleName("Button");
+				
+				HTML labelUserName = new HTML();
+				HTML labelPassword = new HTML();
+				HTML labelRepeatPass = new HTML();
+				HTML labelEmail = new HTML();
+				HTML labelBio = new HTML();
+				HTML labelStatus = new HTML();
+				
+				labelUserName.setText("User Name:");
+				labelUserName.setSize("90px", "15px");
+				userNameHorizontalPanel.add(labelUserName);
+				
+				userNameHorizontalPanel.add(userNameTextBox);
+				userNameTextBox.setWidth("160px");
+				
+				labelPassword.setText("Password:");
+				labelPassword.setSize("90px", "15px");
+				passwordHorizontalPanel.add(labelPassword);
+				
+				passwordHorizontalPanel.add(passwordTextBox);
+				passwordTextBox.setWidth("160px");
+						
+				labelRepeatPass.setText("Repeat Password:");
+				labelRepeatPass.setSize("90px", "15px");
+				repeatPasswordHorizontalPanel.add(labelRepeatPass);
+				
+				repeatPasswordHorizontalPanel.add(repeatPasswordTextBox);
+				repeatPasswordTextBox.setWidth("160px");
+				
+				labelEmail.setText("E-mail:");
+				labelEmail.setSize("90px", "15px");
+				emailHorizontalPanel.add(labelEmail);
+	 
+				emailHorizontalPanel.add(emailTextBox);
+				emailTextBox.setWidth("160px");
+				
+				labelBio.setText("*Bio:");
+				labelBio.setSize("90px", "15px");
+				bioHorizontalPanel.add(labelBio);
+				
+				bioHorizontalPanel.add(bioTextArea);
+				bioTextArea.setWidth("160px");
+				
+				labelStatus.setText("Admin:");
+				labelStatus.setSize("90px", "15px");
+				statusHorizontalPanel.add(labelStatus);
+				
+				statusHorizontalPanel.add(statusCheckBox);
+				
+				registerButton.setSize("125px", "30px");
+				buttonHorizontalPanel.add(registerButton);
+				closeButton.setSize("125px", "30px");
+				buttonHorizontalPanel.add(closeButton);
+
+				verticalPanel.add(userNameHorizontalPanel);
+				verticalPanel.add(passwordHorizontalPanel);
+				verticalPanel.add(repeatPasswordHorizontalPanel);
+				verticalPanel.add(emailHorizontalPanel);
+				verticalPanel.add(bioHorizontalPanel);
+				verticalPanel.add(statusHorizontalPanel);
+				verticalPanel.add(buttonHorizontalPanel);
+
+				registerButton.addClickHandler(new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						// Register the user
+						userName = userNameTextBox.getText();
+						password = passwordTextBox.getText();
+						repeatPassword = repeatPasswordTextBox.getText();
+						email = emailTextBox.getText();
+						
+						if(!LoginVerifier.isUserNameValid(userName)) {
+							new MessagePopup("Invalid user name!");
+						} else if(!LoginVerifier.isPasswordValid(password)) {
+							new MessagePopup("Invalid password!");
+						} else if(!LoginVerifier.isPasswordValid(repeatPassword)) {
+							new MessagePopup("Invalid repeated password!");
+						} else if(!LoginVerifier.isEmailValid(email)) {
+							new MessagePopup("Invalid email!");
+						} else {
+							isInputValid = true;
+						}
+						
+						if(isInputValid) { // If the input has no blanks, the length is valid and the email is valid too
+						
+							userManagerService.containsUserWithUserName(userName, new AsyncCallback<Boolean>() { // Make RPC for checking if there is such user
+	
+								@Override
+								public void onFailure(Throwable caught) { // If RPC fails
+									Window.alert("Failure due: " + caught.getMessage());
+								}
+	
+								@Override
+								public void onSuccess(Boolean result) { // If RPC doesn't fail
+					
+									if(!result) { // If there is no user with that user name
+										if(password.equals(repeatPassword)) { // If the password matches	
+						
+											user = new User(userName, password, email);
+											
+											if(bioTextArea.getText() != null) {
+												user.setBio(bioTextArea.getText()); 
+											}
+											
+											if(statusCheckBox.isChecked()) {
+												user.setUserStatus(UserStatus.ADMIN);
+											}
+											
+											userManagerService.addUser(user, new AsyncCallback<Boolean>() { // Make RPC for adding the user
+	
+												public void onFailure(Throwable caught) { // If RPC fails
+													Window.alert("Failure due: " + caught.getMessage());
+												}
+	
+												@Override
+												public void onSuccess(Boolean result) { // If RPC doesn't fail	
+													System.out.println("The RPC for the add user was successfull!");
+													
+													if(result) {
+														new MessagePopup("You have registered successfully!");
+													} else {
+														new MessagePopup("That username is already taken!");
+													}
+												}
+												
+											}); 
+											
+											isInputValid = false;
+											RegisterDialogBox.this.hide();
+
+										} else {
+											new MessagePopup("Password doesn't match!");
+										}
+									} else {
+										new MessagePopup("This username is already taken!");
+									}
+								}
+								
+							});	
+						}
+					}
+				});
+
+				closeButton.addClickHandler(new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						RegisterDialogBox.this.hide(); // Hides the Register Dialog Box													
+					}
+				});
+
+				setWidget(verticalPanel);
+
+				setGlassEnabled(true); // Make the background gray
+				setAnimationEnabled(true); // Add animation
+				center();
+			}
+		}
+		
+		private static class LoginDialogBox extends DialogBox {
+			
+			String userName;
+			String password;
+			
+			public LoginDialogBox() {
+				// Set the dialog box's caption.
+				setText("Please Login");
+
+				VerticalPanel verticalPanel = new VerticalPanel();
+				verticalPanel.setStyleName("loginVerticalPanel");
+				verticalPanel.setPixelSize(250, 100);
+				
+				HorizontalPanel userNameHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel passwordHorizontalPanel = new HorizontalPanel();
+				HorizontalPanel buttonHorizontalPanel = new HorizontalPanel();
+
+		        final TextBox userNameTextBox = new TextBox();   
+		        final PasswordTextBox passwordTextBox = new PasswordTextBox(); 
+				Button loginButton = new Button("Login");
+				Button cancelButton = new Button("Cancel");
+				loginButton.setStyleName("Button");
+				cancelButton.setStyleName("Button");
+				
+				HTML labelUserName = new HTML();
+				HTML labelPassword = new HTML();		
+				
+				labelUserName.setText("User Name:");
+				labelUserName.setSize("90px", "15px");
+				userNameHorizontalPanel.add(labelUserName);
+				userNameHorizontalPanel.add(userNameTextBox);
+				userNameTextBox.setWidth("160px");
+				
+				labelPassword.setText("Password:");
+				labelPassword.setSize("90px", "15px");
+				passwordHorizontalPanel.add(labelPassword);
+				passwordHorizontalPanel.add(passwordTextBox);
+				passwordTextBox.setWidth("160px");
+				
+				buttonHorizontalPanel.add(loginButton);
+				loginButton.setSize("125px","30px");
+				buttonHorizontalPanel.add(cancelButton);
+				cancelButton.setSize("125px","30px");
+
+				verticalPanel.add(userNameHorizontalPanel);
+				verticalPanel.add(passwordHorizontalPanel);
+				verticalPanel.add(buttonHorizontalPanel);
+				
+				loginButton.addClickHandler(new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+					// Makes the login stuff here
+						
+						userName = userNameTextBox.getText();
+					
+						userManagerService.containsUserWithUserName(userName, new AsyncCallback<Boolean>() { // Make RPC to log the user in
+	
+							@Override
+							public void onFailure(Throwable caught) { // If RPC fails
+								Window.alert("Failure due: " + caught.getMessage());
+							}
+	
+							@Override
+							public void onSuccess(Boolean result) { // If RPC doesn't fail
+								
+								if(result) { // If the user exists
+									password = passwordTextBox.getText();
+									userManagerService.getUserByUserName(userName, new AsyncCallback<User>() {
+	
+										@Override
+										public void onFailure(Throwable caught) {
+											Window.alert("Failure due: " + caught.getMessage());
+										}
+	
+										@Override
+										public void onSuccess(User result) {
+											user = result;
+											
+											if(user.getPassword().equals(password)) { // If the password matches
+												user.setLoggedIn(true); // Logs the user in
+												LoginDialogBox.this.hide();		
+												hideLoginGUI();
+												showLogoutGUI();
+												new UploadGUI();
+												UploadGUI.showUploadGUI();	
+												
+												if(user.getUserStatus().equals(UserStatus.ADMIN)) {
+													new AdminGUI();
+													AdminGUI.showAdminGUI();
+												} 
+
+												new MessagePopup("You have logged in!");
+											} else {
+												new MessagePopup("Wrong password!");
+											}
+										}
+										
+									});
+									
+								} else {
+									new MessagePopup("Wrong username!");
+								}								
+							}							
+						});		
+					}
+				});
+
+				cancelButton.addClickHandler(new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+						LoginDialogBox.this.hide(); // Hides the Login Dialog Box
+					}
+				});
+
+				// DialogBox is a SimplePanel, so you have to set its widget
+				// property to
+				// whatever you want its contents to be.
+				setWidget(verticalPanel);
+
+				setGlassEnabled(true); // Make the background gray
+				setAnimationEnabled(true); // Add animation
+				center();
+			}
+		}
+		
+	}
+
+	private static class UploadGUI {
+		
+		static Button uploadButton;
+		
+		public UploadGUI() {
+			uploadButton = new Button();
+			uploadButton.setText("Upload");
+			uploadButton.setSize("100px", "30px");
+			uploadButton.setStyleName("Button");
+			
+			uploadButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					// Show the upload popup panel				
+					new UploadDialogBox();	
+				}
+			});
+			
+		}
+			
+			private static class UploadDialogBox extends DialogBox {
+				
+				Upload upload;
+				
+				public UploadDialogBox() {
+					// Set the dialog box's caption.
+					setText("Upload a song!");
+
+					VerticalPanel verticalPanel = new VerticalPanel();
+					verticalPanel.setStyleName("uploadVerticalPanel");
+					verticalPanel.setPixelSize(250, 100);
+					
+					HorizontalPanel nameHorizontalPanel = new HorizontalPanel();
+					HorizontalPanel urlHorizontalPanel = new HorizontalPanel();
+					HorizontalPanel buttonHorizontalPanel = new HorizontalPanel();
+
+			        final TextBox nameTextBox = new TextBox(); 
+			        final TextBox urlTextBox = new TextBox(); 
+					Button uploadButton = new Button("Upload");
+					Button cancelButton = new Button("Cancel");
+					uploadButton.setStyleName("Button");
+					cancelButton.setStyleName("Button");
+					
+					HTML nameLabel = new HTML();
+					HTML urlLabel = new HTML();		
+					
+					nameLabel.setText("Name:");
+					nameLabel.setSize("90px", "15px");
+					nameHorizontalPanel.add(nameLabel);
+					nameHorizontalPanel.add(nameTextBox);
+					nameTextBox.setWidth("160px");
+					
+					urlLabel.setText("URL to file:");
+					urlLabel.setSize("90px", "15px");
+					urlHorizontalPanel.add(urlLabel);
+					urlHorizontalPanel.add(urlTextBox);
+					urlTextBox.setWidth("160px");
+					
+					buttonHorizontalPanel.add(uploadButton);
+					uploadButton.setSize("125px","30px");
+					buttonHorizontalPanel.add(cancelButton);
+					cancelButton.setSize("125px","30px");
+
+					verticalPanel.add(nameHorizontalPanel);
+					verticalPanel.add(urlHorizontalPanel);
+					verticalPanel.add(buttonHorizontalPanel);
+					
+					cancelButton.addClickHandler(new ClickHandler() {
+						@Override
+						public void onClick(ClickEvent event) {
+							UploadDialogBox.this.hide(); // Hides the Upload Dialog Box
+						}
+					});
+					
+					uploadButton.addClickHandler(new ClickHandler() {
+						
+						@Override
+						public void onClick(ClickEvent event) {
+							
+							upload = new Upload(nameTextBox.getText(), user.getUserName(), urlTextBox.getText());
+							
+							uploadManagerService.addUpload(upload, new AsyncCallback<Void>() {
+
+								@Override
+								public void onFailure(Throwable caught) {
+									new MessagePopup("Error in uploading!");
+								}
+
+								@Override
+								public void onSuccess(Void result) {
+									new MessagePopup("You have uploaded the song successfully!");
+								}
+							});
+							
+							UploadDialogBox.this.hide();
+							PlayerGUI.addTrackToUploadsList(nameTextBox.getText());						
+						}
+					});
+
+					// DialogBox is a SimplePanel, so you have to set its widget
+					// property to
+					// whatever you want its contents to be.
+					setWidget(verticalPanel);
+
+					setGlassEnabled(true); // Make the background gray
+					setAnimationEnabled(true); // Add animation
+					center();
+				}
+			
+			}
+		
+		public static void showUploadGUI() {
+			RootPanel.get().add(uploadButton);
+			RootPanel.get().setWidgetPosition(uploadButton, 1080, 75);
+		}
+		
+		public static void hideUploadGUI() {
+			RootPanel.get().remove(uploadButton);
+		}
+		
+	}
+	 
+	@Override
+	public void onModuleLoad() {
+
+		RootPanel.get().setStyleName("backgroundImage");
+		
+		new PlayerGUI().showPlayerGUI();
+		
+		// THIS IS TEMPORARY -->
+		Button showAllUsersButton = new Button("Show All Users");
+		showAllUsersButton.setStyleName("Button");
+		showAllUsersButton.setSize("140px", "30px");
+		RootPanel.get().add(showAllUsersButton);
+		
+		showAllUsersButton.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				userManagerService.getAllUserNames(new AsyncCallback<List<String>>() {
+
+					@Override
+					public void onFailure(Throwable caught) {
+						System.out.println("Failiure in RPC!");
+					}
+
+					@Override
+					public void onSuccess(List<String> result) {
+						System.out.println(result);
+					}
+				});
+				
+			}
+		});
+
+			Button showAllUploadsButton = new Button("Show All Uploads");
+			showAllUploadsButton.setStyleName("Button");
+			showAllUsersButton.setSize("150px", "30px");
+			RootPanel.get().add(showAllUploadsButton);
+			
+			showAllUploadsButton.addClickHandler(new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					
+					uploadManagerService.getAllUploadNames(new AsyncCallback<List<String>>() {
+
+						@Override
+						public void onFailure(Throwable caught) {
+							System.out.println("Fail in RPC!");
+						}
+
+						@Override
+						public void onSuccess(List<String> result) {
+							System.out.println(result);
+						}
+					});
+					
+				}
+			});
+			// <-- THIS IS TEMPORARY
+		
+		new LoginGUI();	
+		LoginGUI.showLoginGUI();
+		
+		LoginGUI.loginButton.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {	
+				
+				LoginGUI.LoginDialogBox loginDialogBox = new LoginGUI.LoginDialogBox();
+				loginDialogBox.show();	
+					
+				LoginGUI.logoutButton.addClickHandler(new ClickHandler() {
+					
+					@Override
+					public void onClick(ClickEvent event) {
+						LoginGUI.hideLogoutGUI();
+						LoginGUI.showLoginGUI();				
+						AdminGUI.hideAdminGUI();
+						UploadGUI.hideUploadGUI();
+						user.setLoggedIn(false);
+						new MessagePopup("You have logged out!");
+					}
+				});
+									
+			}
+		});
+		
+		LoginGUI.registerButton.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				new LoginGUI.RegisterDialogBox().show();
+			}
+		});
+		
+	}
+	
+	// Some utility classes
+	
+	public static class MessagePopup extends PopupPanel { // Takes a string and creates a popup panel with it
+
+	    public MessagePopup(String message) {
+	      // PopupPanel's constructor takes 'auto-hide' as its boolean parameter.
+	      // If this is set, the panel closes itself automatically when the user
+	      // clicks outside of it.
+	      super(true);
+
+	      // PopupPanel is a SimplePanel, so you have to set it's widget property to
+	      // whatever you want its contents to be.
+	      setWidget(new Label(message));     	
+	     
+		  setGlassEnabled(true); // Make the background gray
+		  setAnimationEnabled(true); // Add animation
+	      
+	      center();
+	    }
+	}
+	
+}

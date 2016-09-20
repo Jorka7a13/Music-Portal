@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+  
+  <!-- Default page to serve -->
+  <welcome-file-list>
+    <welcome-file>MusicPortal.html</welcome-file>
+  </welcome-file-list>
+
+  <!-- Servlets -->
+  
+  <!-- User Manager -->
+  <servlet>
+    <servlet-name>userManagerImplServlet</servlet-name>
+    <servlet-class>com.ip.music_portal.server.UserManagerImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>userManagerImplServlet</servlet-name>
+    <url-pattern>/musicportal/userManager</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Upload Manager -->
+  <servlet>
+    <servlet-name>uploadManagerImplServlet</servlet-name>
+    <servlet-class>com.ip.music_portal.server.UploadManagerImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>uploadManagerImplServlet</servlet-name>
+    <url-pattern>/musicportal/uploadManager</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Comment Manager -->
+  <servlet>
+    <servlet-name>commentManagerImplServlet</servlet-name>
+    <servlet-class>com.ip.music_portal.server.CommentManagerImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>commentManagerImplServlet</servlet-name>
+    <url-pattern>/musicportal/commentManager</url-pattern>
+  </servlet-mapping>
+
+</web-app>

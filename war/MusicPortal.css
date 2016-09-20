@@ -1,0 +1,55 @@
+/** Add css rules here for your application. */
+
+
+/** Example rules used by the template application (remove for your app) */
+
+h1 {
+  margin: auto;	
+  font-size: 40px;
+  font-weight: bold;
+  text-align: center;
+  color: #000000;
+  background-image: url(http://rockstartemplate.com/headerdesign/header_banner_design.jpg);#FFFFFF
+}
+
+h2 {
+	widrh: 1024px;
+	heignt: 250px;
+	margin-left: auto;
+	margin-right: auto;
+	background-image: url(http://rockstartemplate.com/headerdesign/header_banner_design.jpg);#FFFFFF
+	
+}
+
+.UploadListStyle {
+	list-style-type: circle;
+	
+}
+.gwt-Label {
+	color: #000000;
+	font: normal 12px tahoma, arial, helvetica, sans-serif;
+	border: 1px solid #99bbe8;
+	padding: 14px;
+}
+
+.messagePopup {
+	color: #00CC00;
+	font: normal 12px tahoma, arial, helvetica, sans-serif;
+	border: 1px solid #99bbe8;
+	padding: 14px;
+}
+
+.gwt-Button {
+	height: 5.7em;
+	margin-bottom: 5px;
+	padding-bottom: 3px;
+	font-size: 12px;
+	font-family: arial, sans-serif;
+}
+.Button:hover {
+	color: #006600;
+ }
+
+.backgroundImage {
+	background-image: url("backgroundImage.jpg");
+}

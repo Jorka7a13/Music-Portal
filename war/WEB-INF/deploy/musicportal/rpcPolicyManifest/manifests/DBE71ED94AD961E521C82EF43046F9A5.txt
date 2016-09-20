@@ -1,0 +1,2 @@
+serviceClass: com.ip.music_portal.client.ICommentManager
+path: 3DBFC683FE07E48663C6FEDDEFBEF21E.gwt.rpc
